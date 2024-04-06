@@ -1,0 +1,27 @@
+AllCops:
+  TargetRubyVersion: 3.1
+  NewCops: enable
+  Exclude:
+    - 'bin/**/*'
+    - 'db/migrate/*'
+    - 'db/schema.rb'
+
+# Layout
+Layout/LineLength:
+  Max: 120
+
+# Metrics
+Metrics/AbcSize:
+  Enabled: false
+Metrics/BlockLength:
+  Max: 30
+  Exclude:
+    - 'spec/**/*'
+Metrics/MethodLength:
+  Max: 15
+
+# Style
+Style/Documentation:
+  Enabled: false
+Style/HashSyntax:
+  Enabled: false
