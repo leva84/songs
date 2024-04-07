@@ -29,4 +29,15 @@ describe Download, type: :model do
       expect(download.download_date).to eq(Date.today)
     end
   end
+
+  describe 'creating duplicate downloads' do
+    let(:song) { create(:song) }
+    let(:download) { create(:download, song: song) }
+    let(:duplicate_download) {  build(:download, song: song, download_date: download.download_date) }
+
+    it 'does not allow creating duplicate downloads' do
+      expect(duplicate_download).not_to be_valid
+      expect(duplicate_download.errors[:download_date]).to be_present
+    end
+  end
 end
