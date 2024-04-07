@@ -1,8 +1,17 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  resources :artists, only: [] do
+    member do
+      get :songs_ordered_by_title
+      get :songs_ordered_by_downloads_count
+      get :top_artists_by_letter
+    end
+  end
 
-  # Defines the root path route ("/")
-  # root "articles#index"
+  resources :songs, only: [] do
+    collection do
+      get :top_downloads
+    end
+  end
 end
