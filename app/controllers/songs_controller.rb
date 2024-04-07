@@ -2,6 +2,6 @@
 
 class SongsController < ApplicationController
   def top_downloads
-    render json: CollectionService.top_downloads(params[:period], params[:limit])
+    render json: collection_service.top_downloads
   end
 end
