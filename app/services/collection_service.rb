@@ -30,13 +30,7 @@ class CollectionService
   end
 
   def top_artists_by_letter
-    relation = if letter.present?
-                 Artist.where('artists.name LIKE ?', "%#{ letter }%")
-               else
-                 Artist.all
-               end
-
-    relation
+    artists_by_letter
       .joins(songs: :downloads)
       .group('artists.id')
       .order('SUM(downloads.count) DESC')
@@ -45,22 +39,12 @@ class CollectionService
   end
 
   def top_downloads
-    relation = case period
-               when 'day'
-                 Song.where(downloads: { download_date: Date.today })
-               when 'week'
-                 Song.where('downloads.download_date >= ?', 1.week.ago)
-               when 'month'
-                 Song.where('downloads.download_date >= ?', 1.month.ago)
-               else
-                 Song.all
-               end
-
-    relation.left_joins(:downloads)
-            .group(:id)
-            .order('COUNT(downloads.count) DESC')
-            .limit(limit)
-            .pluck(:id, :title)
+    songs_by_period
+      .left_joins(:downloads)
+      .group(:id)
+      .order('COUNT(downloads.count) DESC')
+      .limit(limit)
+      .pluck(:id, :title)
   end
 
   private
@@ -74,10 +58,30 @@ class CollectionService
   end
 
   def limit
-    @limit ||= params[:limit].to_i || DEFAULT_LIMIT
+    @limit ||= (params[:limit] || DEFAULT_LIMIT).to_i
   end
 
   def period
-    @period ||= params[:period]
+    @period ||= params[:period] || 'day'
+  end
+
+  def songs_by_period
+    @songs_by_period ||= case period
+                         when 'day'
+                           Song.where(downloads: { download_date: Date.today })
+                         when 'week'
+                           Song.where('downloads.download_date >= ?', 1.week.ago)
+                         when 'month'
+                           Song.where('downloads.download_date >= ?', 1.month.ago)
+                         end
+
+  end
+
+  def artists_by_letter
+    @artists_by_letter ||= if letter.present?
+                             Artist.where('artists.name LIKE ?', "%#{ letter }%")
+                           else
+                             Artist.all
+                           end
   end
 end

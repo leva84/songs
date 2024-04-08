@@ -13,9 +13,6 @@ describe SongsController, type: :controller do
     let!(:download1) { create(:download, count: 5, song: song1) }
     let!(:download2) { create(:download, count: 3, song: song2) }
 
-    let(:params) { { period: 'day', limit: limit } }
-    let(:limit) { 2 }
-
     let(:expected_data) do
       [
         [songs.first.id, songs.first.title],
@@ -23,20 +20,45 @@ describe SongsController, type: :controller do
       ]
     end
 
-    it 'returns success status' do
-      subject
-      expect(response).to have_http_status(:success)
+    context 'when period and limit parameters are provided' do
+      let(:params) { { period: 'day', limit: limit } }
+      let(:limit) { 2 }
+
+      it 'returns success status' do
+        subject
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns top downloads for a specific period' do
+        subject
+        expect(response.body).to eq(expected_data.to_json)
+      end
+
+      it 'calls top_downloads method of CollectionService' do
+        expect(CollectionService).to receive(:new).and_return(collection_service)
+        expect(collection_service).to receive(:top_downloads).and_return(expected_data)
+        subject
+      end
     end
 
-    it 'returns top downloads for a specific period' do
-      subject
-      expect(response.body).to eq(expected_data.to_json)
-    end
+    context 'when period and limit parameters are not provided' do
+      let(:params) { {} }
 
-    it 'calls top_downloads method of CollectionService' do
-      expect(CollectionService).to receive(:new).and_return(collection_service)
-      expect(collection_service).to receive(:top_downloads).and_return(expected_data)
-      subject
+      it 'returns success status' do
+        subject
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns top downloads with default limit' do
+        subject
+        expect(response.body).to eq(expected_data.to_json)
+      end
+
+      it 'calls top_downloads method of CollectionService with default limit' do
+        expect(CollectionService).to receive(:new).and_return(collection_service)
+        expect(collection_service).to receive(:top_downloads).and_return(expected_data)
+        subject
+      end
     end
   end
 end
