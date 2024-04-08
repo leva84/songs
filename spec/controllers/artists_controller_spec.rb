@@ -12,20 +12,42 @@ describe ArtistsController, type: :controller do
     let(:expected_data) { songs.pluck(:id, :title) }
     let(:params) { { artist_id: artist.id } }
 
-    it 'returns success status' do
-      subject
-      expect(response).to have_http_status(:success)
+    context 'when id parameter are provided' do
+      it 'returns success status' do
+        subject
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns songs ordered by title' do
+        subject
+        expect(response.body).to eq(expected_data.to_json)
+      end
+
+      it 'calls songs_ordered_by_title method of CollectionService' do
+        expect(CollectionService).to receive(:new).and_return(collection_service)
+        expect(collection_service).to receive(:songs_ordered_by_title).and_return(expected_data)
+        subject
+      end
     end
 
-    it 'returns songs ordered by title' do
-      subject
-      expect(response.body).to eq(expected_data.to_json)
-    end
+    context 'when id parameter are not provided' do
+      let(:params) { {} }
 
-    it 'calls songs_ordered_by_title method of CollectionService' do
-      expect(CollectionService).to receive(:new).and_return(collection_service)
-      expect(collection_service).to receive(:songs_ordered_by_title).and_return(expected_data)
-      subject
+      it 'returns success status' do
+        subject
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns songs ordered by title' do
+        subject
+        expect(response.body).to eq([].to_json)
+      end
+
+      it 'calls songs_ordered_by_title method of CollectionService' do
+        expect(CollectionService).to receive(:new).and_return(collection_service)
+        expect(collection_service).to receive(:songs_ordered_by_title)
+        subject
+      end
     end
   end
 
@@ -41,20 +63,42 @@ describe ArtistsController, type: :controller do
     let(:expected_data) { songs.reverse.pluck(:id, :title).to_json }
     let(:params) { { artist_id: artist.id } }
 
-    it 'returns success status' do
-      subject
-      expect(response).to have_http_status(:success)
+    context 'when id parameter are provided' do
+      it 'returns success status' do
+        subject
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns songs ordered by downloads count' do
+        subject
+        expect(response.body).to eq(expected_data)
+      end
+
+      it 'calls songs_ordered_by_downloads_count method of CollectionService' do
+        expect(CollectionService).to receive(:new).and_return(collection_service)
+        expect(collection_service).to receive(:songs_ordered_by_downloads_count).and_return(expected_data)
+        subject
+      end
     end
 
-    it 'returns songs ordered by downloads count' do
-      subject
-      expect(response.body).to eq(expected_data)
-    end
+    context 'when id parameter are not provided' do
+      let(:params) { {} }
 
-    it 'calls songs_ordered_by_downloads_count method of CollectionService' do
-      expect(CollectionService).to receive(:new).and_return(collection_service)
-      expect(collection_service).to receive(:songs_ordered_by_downloads_count).and_return(expected_data)
-      subject
+      it 'returns success status' do
+        subject
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns songs ordered by downloads count' do
+        subject
+        expect(response.body).to eq([].to_json)
+      end
+
+      it 'calls songs_ordered_by_downloads_count method of CollectionService' do
+        expect(CollectionService).to receive(:new).and_return(collection_service)
+        expect(collection_service).to receive(:songs_ordered_by_downloads_count)
+        subject
+      end
     end
   end
 
@@ -78,20 +122,52 @@ describe ArtistsController, type: :controller do
       ]
     end
 
-    it 'returns success status' do
-      subject
-      expect(response).to have_http_status(:success)
+    context 'when letter and limit parameters are provided' do
+      it 'returns success status' do
+        subject
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns top artists by letter' do
+        subject
+        expect(response.body).to eq(expected_data.to_json)
+      end
+
+      it 'calls top_artists_by_letter method of CollectionService' do
+        expect(CollectionService).to receive(:new).and_return(collection_service)
+        expect(collection_service).to receive(:top_artists_by_letter).and_return(expected_data)
+        subject
+      end
     end
 
-    it 'returns top artists by letter' do
-      subject
-      expect(response.body).to eq(expected_data.to_json)
-    end
+    context 'when letter and limit parameters are not provided' do
+      let(:params) { {} }
+      let(:expected_data) { sorted_artists.pluck(:id, :name) }
+      let(:sorted_artists) do
+        artists.sort_by { |artist| artist.songs.joins(:downloads).sum('downloads.count') }
+      end
 
-    it 'calls top_artists_by_letter method of CollectionService' do
-      expect(CollectionService).to receive(:new).and_return(collection_service)
-      expect(collection_service).to receive(:top_artists_by_letter).and_return(expected_data)
-      subject
+      before do
+        artists.each do |artist|
+          create(:download, count: 3, song: create(:song, artist: artist))
+        end
+      end
+
+      it 'returns success status' do
+        subject
+        expect(response).to have_http_status(:success)
+      end
+
+      it 'returns all top artists' do
+        subject
+        expect(response.body).to match(expected_data.to_json)
+      end
+
+      it 'calls top_artists_by_letter method of CollectionService' do
+        expect(CollectionService).to receive(:new).and_return(collection_service)
+        expect(collection_service).to receive(:top_artists_by_letter).and_return(expected_data)
+        subject
+      end
     end
   end
 end
