@@ -2,14 +2,14 @@
 
 class ArtistsController < ApplicationController
   def songs_ordered_by_title
-    render json: CollectionService.songs_ordered_by_title(params[:id])
+    render json: collection_service.songs_ordered_by_title
   end
 
   def songs_ordered_by_downloads_count
-    render json: CollectionService.songs_ordered_by_downloads_count(params[:id])
+    render json: collection_service.songs_ordered_by_downloads_count
   end
 
   def top_artists_by_letter
-    render json: CollectionService.top_artists_by_letter(params[:letter], params[:count])
+    render json: collection_service.top_artists_by_letter
   end
 end
